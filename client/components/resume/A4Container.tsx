@@ -1,0 +1,97 @@
+"use client";
+
+import React, { ReactNode, useRef, useState, useLayoutEffect } from "react";
+import { PaperSize } from "@/types/resume";
+
+interface Props {
+  children: ReactNode;
+  padding?: string;
+  paperSize?: PaperSize;
+  fitToOnePage?: boolean;
+}
+
+export const PAPER_DIMENSIONS: Record<
+  PaperSize,
+  { width: number; height: number; name: string }
+> = {
+  a4: { width: 794, height: 1123, name: "A4 Standard (India & Global)" },
+  letter: { width: 816, height: 1056, name: "US Letter (USA & Canada)" },
+};
+
+export default function A4Container({
+  children,
+  padding,
+  paperSize = "a4",
+  fitToOnePage = true,
+}: Props) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+
+  const dimensions = PAPER_DIMENSIONS[paperSize] || PAPER_DIMENSIONS.a4;
+
+  useLayoutEffect(() => {
+    if (!contentRef.current) return;
+    const inner = contentRef.current;
+
+    // Reset old page break spacers before recalculating
+    const existingSpacers = inner.querySelectorAll(".pdf-page-break-spacer");
+    existingSpacers.forEach((s) => s.remove());
+
+    if (fitToOnePage) {
+      // Force unscaled height check for 1-page fit
+      const currentTransform = inner.style.transform;
+      inner.style.transform = "none";
+
+      const contentHeight = inner.scrollHeight || inner.offsetHeight;
+      const targetHeight = dimensions.height - (padding ? parseInt(padding, 10) * 2 : 48);
+
+      inner.style.transform = currentTransform;
+
+      if (contentHeight > targetHeight) {
+        const calculatedScale = Math.min(1, targetHeight / (contentHeight + 5));
+        setScale(calculatedScale);
+      } else {
+        setScale(1);
+      }
+    } else {
+      // Multi-Page Natural Flow (Clean Unscaled Display)
+      setScale(1);
+    }
+  }, [children, fitToOnePage, paperSize, dimensions.height, padding]);
+
+  return (
+    <div
+      ref={containerRef}
+      id="resume-card"
+      className={`bg-white shadow-2xl transition-all duration-300 relative box-border mx-auto print:shadow-none print:m-0 ${
+        fitToOnePage ? "fit-one-page-print" : ""
+      }`}
+      style={{
+        width: `${dimensions.width}px`,
+        minHeight: `${dimensions.height}px`,
+        maxHeight: fitToOnePage ? `${dimensions.height}px` : "none",
+        height: fitToOnePage ? `${dimensions.height}px` : "auto",
+        overflow: fitToOnePage ? "hidden" : "visible",
+        padding: padding || "36px 40px",
+      }}
+    >
+      <div
+        ref={contentRef}
+        className={`w-full origin-top transition-all duration-300 ${
+          fitToOnePage ? "one-page-condensed" : ""
+        }`}
+        style={{
+          ...(fitToOnePage && scale < 1
+            ? {
+                transform: `scale(${scale})`,
+                transformOrigin: "top center",
+              }
+            : {}),
+        }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
