@@ -24,7 +24,7 @@ https://resume-ai-alpha-beige.vercel.app
 https://resumeai-qfs2.onrender.com
 
 ### 📂 GitHub Repository
-https://github.com/sainiansh3004/ResumeAI
+https://github.com/Shreyas1coddie/Resume_AI
 
 ---
 
@@ -227,8 +227,8 @@ ResumeAI
 ## Clone Repository
 
 ```bash
-git clone https://github.com/sainiansh3004/ResumeAI.git
-cd ResumeAI
+git clone https://github.com/Shreyas1coddie/Resume_AI.git
+cd Resume_AI
 ```
 
 ---
